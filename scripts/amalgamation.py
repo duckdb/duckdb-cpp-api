@@ -1,7 +1,7 @@
 import os
 import re
 
-target = os.path.join('duckdb', 'duckdb_stable.hpp')
+target = os.path.join('amalgamation', 'duckdb_stable.hpp')
 written_files = {}
 include_paths = 'duckdb'
 
@@ -61,5 +61,6 @@ def amalgamate_dir(path):
 content = '#pragma once\n\n'
 content += amalgamate_dir('duckdb')
 
+os.mkdir('amalgamation')
 with open(target, 'w+') as f:
 	f.write(content)
