@@ -37,7 +37,7 @@ public:
 			string.value.pointer.ptr = (char *)data; // NOLINT
 		}
 	}
-	string_t(const char *str) : string_t(str, strlen(str)) {
+	string_t(const char *str) : string_t(str, static_cast<uint32_t>(strlen(str))) {
 	}
 
 	const char *GetData() const {

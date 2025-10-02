@@ -38,7 +38,7 @@ public:
 		if (result > static_cast<uint64_t>(std::numeric_limits<int64_t>::max())) {
 			return 0;
 		}
-		return negative ? static_cast<int64_t>(-result) : static_cast<int64_t>(result);
+		return negative ? -static_cast<int64_t>(result) : static_cast<int64_t>(result);
 	}
 	static uint64_t FromHex(const char *str, idx_t len, idx_t &pos) {
 		if (len == 0) {
