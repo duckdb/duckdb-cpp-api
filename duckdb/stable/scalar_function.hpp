@@ -52,6 +52,8 @@ private:
 
 class ScalarFunction {
 public:
+	virtual ~ScalarFunction() = default;
+
 	virtual const char *Name() const {
 		throw Exception("ScalarFunction does not have a name defined - it can only be added to a set");
 	}
@@ -73,7 +75,7 @@ public:
 
 class ScalarFunctionSet {
 public:
-	ScalarFunctionSet(const char *name_p) : name(name_p) {
+	explicit ScalarFunctionSet(const char *name_p) : name(name_p) {
 		set = duckdb_create_scalar_function_set(name_p);
 	}
 	~ScalarFunctionSet() {
@@ -96,13 +98,9 @@ private:
 	duckdb_scalar_function_set set;
 };
 
-template <class OP, class INPUT_TYPE_T, class RETURN_TYPE_T, class STATIC_T = void>
-class UnaryFunction : public ScalarFunction {
+template <class INPUT_TYPE, class RESULT_TYPE>
+class BaseUnaryFunction : public ScalarFunction {
 public:
-	using INPUT_TYPE = INPUT_TYPE_T;
-	using RESULT_TYPE = RETURN_TYPE_T;
-	using STATIC_DATA = STATIC_T;
-
 	LogicalType ReturnType() const override {
 		return TemplateToType::Convert<RESULT_TYPE>();
 	}
@@ -111,7 +109,38 @@ public:
 		arguments.push_back(TemplateToType::Convert<INPUT_TYPE>());
 		return arguments;
 	}
-	template <class STATIC_DATA_TYPE>
+};
+
+template <class OP, class INPUT_TYPE_T, class RETURN_TYPE_T>
+class UnaryFunction : public BaseUnaryFunction<INPUT_TYPE_T, RETURN_TYPE_T> {
+public:
+	using INPUT_TYPE = INPUT_TYPE_T;
+	using RESULT_TYPE = RETURN_TYPE_T;
+
+	static void ExecuteUnary(duckdb_function_info info, duckdb_data_chunk input, duckdb_vector output) {
+		FunctionExecutor executor(info);
+		DataChunk chunk(input);
+		auto input_vec = chunk.GetVector(0);
+		Vector output_vec(output);
+		auto count = chunk.Size();
+
+		executor.ExecuteUnary<INPUT_TYPE, RESULT_TYPE>(
+			input_vec, output_vec, count,
+			[&](const typename INPUT_TYPE::ARG_TYPE &input_val) { return OP::Operation(input_val); });
+	}
+
+	duckdb_scalar_function_t GetFunction() const override {
+		return ExecuteUnary;
+	}
+};
+
+template <class OP, class INPUT_TYPE_T, class RETURN_TYPE_T, class STATIC_T>
+class UnaryFunctionExt : public BaseUnaryFunction<INPUT_TYPE_T, RETURN_TYPE_T> {
+public:
+	using INPUT_TYPE = INPUT_TYPE_T;
+	using RESULT_TYPE = RETURN_TYPE_T;
+	using STATIC_DATA = STATIC_T;
+
 	static void ExecuteUnary(duckdb_function_info info, duckdb_data_chunk input, duckdb_vector output) {
 		FunctionExecutor executor(info);
 		DataChunk chunk(input);
@@ -122,35 +151,17 @@ public:
 		typename OP::STATIC_DATA static_data;
 		executor.ExecuteUnary<INPUT_TYPE, RESULT_TYPE>(
 		    input_vec, output_vec, count,
-		    [&](const typename INPUT_TYPE::ARG_TYPE &input) { return OP::Operation(input, static_data); });
-	}
-
-	template <>
-	void ExecuteUnary<void>(duckdb_function_info info, duckdb_data_chunk input, duckdb_vector output) {
-		FunctionExecutor executor(info);
-		DataChunk chunk(input);
-		auto input_vec = chunk.GetVector(0);
-		Vector output_vec(output);
-		auto count = chunk.Size();
-
-		executor.ExecuteUnary<INPUT_TYPE, RESULT_TYPE>(
-		    input_vec, output_vec, count,
-		    [&](const typename INPUT_TYPE::ARG_TYPE &input) { return OP::Operation(input); });
+		    [&](const typename INPUT_TYPE::ARG_TYPE &input_val) { return OP::Operation(input_val, static_data); });
 	}
 
 	duckdb_scalar_function_t GetFunction() const override {
-		return ExecuteUnary<STATIC_DATA>;
+		return ExecuteUnary;
 	}
 };
 
-template <class OP, class A_TYPE_T, class B_TYPE_T, class RETURN_TYPE_T, class STATIC_T = void>
-class BinaryFunction : public ScalarFunction {
+template <class A_TYPE, class B_TYPE, class RESULT_TYPE>
+class BaseBinaryFunction : public ScalarFunction {
 public:
-	using A_TYPE = A_TYPE_T;
-	using B_TYPE = B_TYPE_T;
-	using RESULT_TYPE = RETURN_TYPE_T;
-	using STATIC_DATA = STATIC_T;
-
 	LogicalType ReturnType() const override {
 		return TemplateToType::Convert<RESULT_TYPE>();
 	}
@@ -160,26 +171,16 @@ public:
 		arguments.push_back(TemplateToType::Convert<B_TYPE>());
 		return arguments;
 	}
+};
 
-	template <class STATIC_DATA_TYPE>
+template <class OP, class A_TYPE_T, class B_TYPE_T, class RETURN_TYPE_T>
+class BinaryFunction : public BaseBinaryFunction<A_TYPE_T, B_TYPE_T, RETURN_TYPE_T> {
+public:
+	using A_TYPE = A_TYPE_T;
+	using B_TYPE = B_TYPE_T;
+	using RESULT_TYPE = RETURN_TYPE_T;
+
 	static void ExecuteBinary(duckdb_function_info info, duckdb_data_chunk input, duckdb_vector output) {
-		FunctionExecutor executor(info);
-		DataChunk chunk(input);
-		auto a_vec = chunk.GetVector(0);
-		auto b_vec = chunk.GetVector(1);
-		Vector output_vec(output);
-		auto count = chunk.Size();
-
-		typename OP::STATIC_DATA static_data;
-		executor.ExecuteBinary<A_TYPE, B_TYPE, RESULT_TYPE>(
-		    a_vec, b_vec, output_vec, count,
-		    [&](const typename A_TYPE::ARG_TYPE &a_val, const typename B_TYPE::ARG_TYPE &b_val) {
-			    return OP::Operation(a_val, b_val, static_data);
-		    });
-	}
-
-	template <>
-	void ExecuteBinary<void>(duckdb_function_info info, duckdb_data_chunk input, duckdb_vector output) {
 		FunctionExecutor executor(info);
 		DataChunk chunk(input);
 		auto a_vec = chunk.GetVector(0);
@@ -195,7 +196,36 @@ public:
 	}
 
 	duckdb_scalar_function_t GetFunction() const override {
-		return ExecuteBinary<STATIC_DATA>;
+		return ExecuteBinary;
+	}
+};
+
+template <class OP, class A_TYPE_T, class B_TYPE_T, class RETURN_TYPE_T, class STATIC_T>
+class BinaryFunctionExt : public BaseBinaryFunction<A_TYPE_T, B_TYPE_T, RETURN_TYPE_T> {
+public:
+	using A_TYPE = A_TYPE_T;
+	using B_TYPE = B_TYPE_T;
+	using RESULT_TYPE = RETURN_TYPE_T;
+	using STATIC_DATA = STATIC_T;
+
+	static void ExecuteBinary(duckdb_function_info info, duckdb_data_chunk input, duckdb_vector output) {
+		FunctionExecutor executor(info);
+		DataChunk chunk(input);
+		auto a_vec = chunk.GetVector(0);
+		auto b_vec = chunk.GetVector(1);
+		Vector output_vec(output);
+		auto count = chunk.Size();
+
+		STATIC_DATA static_data;
+		executor.ExecuteBinary<A_TYPE, B_TYPE, RESULT_TYPE>(
+		    a_vec, b_vec, output_vec, count,
+		    [&](const typename A_TYPE::ARG_TYPE &a_val, const typename B_TYPE::ARG_TYPE &b_val) {
+			    return OP::Operation(a_val, b_val, static_data);
+		    });
+	}
+
+	duckdb_scalar_function_t GetFunction() const override {
+		return ExecuteBinary;
 	}
 };
 

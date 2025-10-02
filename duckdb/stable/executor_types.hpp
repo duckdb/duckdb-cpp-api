@@ -33,12 +33,12 @@ struct AssignResult {
 		auto result_data = reinterpret_cast<T *>(duckdb_vector_get_data(result.c_vec()));
 		result_data[r] = result_val;
 	}
-
-	template<>
-	void Assign(Vector &result, idx_t r, string_t result_val) {
-		duckdb_vector_assign_string_element_len(result.c_vec(), r, result_val.GetData(), result_val.GetSize());
-	}
 };
+
+template<>
+inline void AssignResult::Assign(Vector &result, idx_t r, string_t result_val) {
+	duckdb_vector_assign_string_element_len(result.c_vec(), r, result_val.GetData(), result_val.GetSize());
+}
 
 template <class INPUT_TYPE>
 struct PrimitiveType {
@@ -132,32 +132,32 @@ struct TemplateToType {
 	static LogicalType Convert() {
 		static_assert(false, "Missing type in TemplateToType");
 	}
-
-	template <>
-	LogicalType Convert<string_t>() {
-		return LogicalType::VARCHAR();
-	}
-
-	template <>
-	LogicalType Convert<PrimitiveType<bool>>() {
-		return LogicalType::BOOLEAN();
-	}
-
-	template <>
-	LogicalType Convert<PrimitiveType<string_t>>() {
-		return LogicalType::VARCHAR();
-	}
-
-	template <>
-	LogicalType Convert<PrimitiveType<uint8_t>>() {
-		return LogicalType::UTINYINT();
-	}
-
-	template <>
-	LogicalType Convert<PrimitiveType<hugeint_t>>() {
-		return LogicalType::HUGEINT();
-	}
-
 };
+
+template <>
+inline LogicalType TemplateToType::Convert<string_t>() {
+	return LogicalType::VARCHAR();
+}
+
+template <>
+inline LogicalType TemplateToType::Convert<PrimitiveType<bool>>() {
+	return LogicalType::BOOLEAN();
+}
+
+template <>
+inline LogicalType TemplateToType::Convert<PrimitiveType<string_t>>() {
+	return LogicalType::VARCHAR();
+}
+
+template <>
+inline LogicalType TemplateToType::Convert<PrimitiveType<uint8_t>>() {
+	return LogicalType::UTINYINT();
+}
+
+template <>
+inline LogicalType TemplateToType::Convert<PrimitiveType<hugeint_t>>() {
+	return LogicalType::HUGEINT();
+}
+
 
 } // namespace duckdb_stable

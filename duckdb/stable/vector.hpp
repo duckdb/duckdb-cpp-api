@@ -10,6 +10,7 @@
 
 #include "duckdb/stable/common.hpp"
 #include "duckdb/stable/logical_type.hpp"
+#include "duckdb/stable/exception.hpp"
 
 namespace duckdb_stable {
 

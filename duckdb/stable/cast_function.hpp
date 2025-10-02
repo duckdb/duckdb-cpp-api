@@ -17,6 +17,8 @@ namespace duckdb_stable {
 
 class CastFunction {
 public:
+	virtual ~CastFunction() = default;
+
 	virtual LogicalType SourceType() = 0;
 	virtual LogicalType TargetType() = 0;
 	virtual int64_t ImplicitCastCost() = 0;
