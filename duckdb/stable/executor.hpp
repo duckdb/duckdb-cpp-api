@@ -10,6 +10,7 @@
 
 #include "duckdb/stable/executor_types.hpp"
 #include <functional>
+#include <cstddef>
 
 namespace duckdb_stable {
 class ExpressionState;
@@ -17,10 +18,10 @@ class ExpressionState;
 template <class T>
 struct ResultValue {
 	ResultValue() = default;
-	ResultValue(T val_p) : val(val_p), is_null(false) {
-	} // NOLINT: allow implicit conversion
-	ResultValue(nullptr_t) : is_null(true) {
-	} // NOLINT: allow implicit conversion
+	ResultValue(T val_p) : val(val_p), is_null(false) {  // NOLINT: allow implicit conversion
+	}
+	ResultValue(nullptr_t) : is_null(true) { // NOLINT: allow implicit conversion
+	}
 
 	T val;
 	bool is_null = false;
