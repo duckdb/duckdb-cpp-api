@@ -12,6 +12,7 @@
 #include "duckdb/stable/cast_function.hpp"
 #include "duckdb/stable/logical_type.hpp"
 #include "duckdb/stable/scalar_function.hpp"
+#include "duckdb/stable/exception.hpp"
 #include <string>
 
 namespace duckdb_stable {
@@ -41,7 +42,7 @@ protected:
 		// Register the type
 		auto success = duckdb_register_logical_type(connection, type.c_type(), nullptr) == DuckDBSuccess;
 		if (!success) {
-			throw std::runtime_error("Failed to register type");
+			throw Exception("Failed to register type");
 		}
 	}
 
@@ -58,7 +59,7 @@ protected:
 
 		duckdb_destroy_cast_function(&cast_function);
 		if (!success) {
-			throw std::runtime_error("Failed to register cast function");
+			throw Exception("Failed to register cast function");
 		}
 	}
 
@@ -66,14 +67,14 @@ protected:
 		auto scalar_function = function.CreateFunction();
 		auto success = duckdb_register_scalar_function(connection, scalar_function.c_function()) == DuckDBSuccess;
 		if (!success) {
-			throw std::runtime_error(std::string("Failed to register scalar function ") + function.Name());
+			throw Exception(std::string("Failed to register scalar function ") + function.Name());
 		}
 	}
 
 	void Register(ScalarFunctionSet &function_set) {
 		auto success = duckdb_register_scalar_function_set(connection, function_set.c_set()) == DuckDBSuccess;
 		if (!success) {
-			throw std::runtime_error("Failed to register scalar function set");
+			throw Exception("Failed to register scalar function set");
 		}
 	}
 

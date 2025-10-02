@@ -42,11 +42,11 @@ public:
 			return Vector(duckdb_struct_vector_get_child(c_vec(), index));
 		} else if (type.id() == DUCKDB_TYPE_LIST) {
 			if (index != 0) {
-				throw std::runtime_error("List only has a single child");
+				throw Exception("List only has a single child");
 			}
 			return Vector(duckdb_list_vector_get_child(c_vec()));
 		} else {
-			throw std::runtime_error("Not a nested type");
+			throw Exception("Not a nested type");
 		}
 	}
 

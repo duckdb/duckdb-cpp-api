@@ -12,6 +12,7 @@
 #include "duckdb/stable/hugeint.hpp"
 #include "duckdb/stable/uhugeint.hpp"
 #include <string>
+#include <stdexcept>
 #include <vector>
 
 namespace duckdb_stable {
@@ -19,7 +20,7 @@ namespace duckdb_stable {
 struct FormatValue {
 	FormatValue(double dbl_val) : str_val(std::to_string(dbl_val)) {}
 	FormatValue(int64_t int_val) : str_val(std::to_string(int_val)) {}
-	FormatValue(idx_t uint_val) : str_val(std::to_string(uint_val)) {}
+	FormatValue(uint64_t uint_val) : str_val(std::to_string(uint_val)) {}
 	FormatValue(std::string str_val_p): str_val(std::move(str_val_p)) {}
 
 	template<class T>

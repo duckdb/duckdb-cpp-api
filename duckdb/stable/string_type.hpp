@@ -9,6 +9,7 @@
 #pragma once
 
 #include "duckdb/stable/common.hpp"
+#include <cstring>
 
 namespace duckdb_stable {
 

@@ -53,7 +53,7 @@ private:
 class ScalarFunction {
 public:
 	virtual const char *Name() const {
-		throw std::runtime_error("ScalarFunction does not have a name defined - it can only be added to a set");
+		throw Exception("ScalarFunction does not have a name defined - it can only be added to a set");
 	}
 	virtual LogicalType ReturnType() const = 0;
 	virtual std::vector<LogicalType> Arguments() const = 0;
