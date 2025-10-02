@@ -20,7 +20,7 @@ struct ResultValue {
 	ResultValue() = default;
 	ResultValue(T val_p) : val(val_p), is_null(false) {  // NOLINT: allow implicit conversion
 	}
-	ResultValue(nullptr_t) : is_null(true) { // NOLINT: allow implicit conversion
+	ResultValue(nullptr_t null_val) : is_null(true) { // NOLINT: allow implicit conversion
 	}
 
 	T val;
