@@ -8,3 +8,8 @@ C++ API for making DuckDB extensions. The API is based on the stable C API inste
 * Extensions developed with this API compile significantly faster, as we don't need to re-compile DuckDB as part of development. This allows for faster development and iteration.
 
 
+Usage:
+
+```cpp
+#include "duckdb/duckdb_stable.hpp"
+```
