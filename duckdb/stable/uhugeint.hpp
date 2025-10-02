@@ -9,6 +9,7 @@
 #pragma once
 
 #include "duckdb/stable/common.hpp"
+#include "duckdb/stable/exception.hpp"
 #include <stdexcept>
 
 namespace duckdb_stable {
@@ -16,7 +17,7 @@ namespace duckdb_stable {
 class uhugeint_t {
 public:
 	uhugeint_t() = default;
-	uhugeint_t(duckdb_uhugeint value_p) : value(value_p) {
+	uhugeint_t(duckdb_uhugeint value_p) : value(value_p) { // NOLINT: allow implicit conversion
 	}
 	uhugeint_t(const uhugeint_t &other) : value(other.value) {
 	}
@@ -56,7 +57,7 @@ public:
 	uhugeint_t add(uhugeint_t rhs) const {
 		uhugeint_t result = *this;
 		if (!try_add_in_place(result, rhs)) {
-			throw std::runtime_error("Out of Range Error: Overflow in addition");
+			throw Exception("Out of Range Error: Overflow in addition");
 		}
 		return result;
 	}
@@ -72,7 +73,7 @@ public:
 	uhugeint_t subtract(uhugeint_t rhs) const {
 		uhugeint_t result = *this;
 		if (!try_subtract_in_place(result, rhs)) {
-			throw std::runtime_error("Out of Range Error: Overflow in subtraction");
+			throw Exception("Out of Range Error: Overflow in subtraction");
 		}
 		return result;
 	}
@@ -87,7 +88,7 @@ public:
 	static uhugeint_t from_hugeint(duckdb_hugeint val) {
 		uhugeint_t result;
 		if (!try_from_hugeint(val, result)) {
-			throw std::runtime_error("Failed to convert hugeint to uhugeint: out of range");
+			throw Exception("Failed to convert hugeint to uhugeint: out of range");
 		}
 		return result;
 	}
@@ -129,5 +130,14 @@ public:
 private:
 	duckdb_uhugeint value;
 };
+
+template<>
+inline FormatValue FormatValue::CreateFormatValue(uhugeint_t val) {
+	if (val.upper() == 0) {
+		return FormatValue(val.lower());
+	}
+	// FIXME: format big numbers
+	return FormatValue("UHUGEINT");
+}
 
 } // namespace duckdb_stable

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "duckdb/stable/common.hpp"
+#include "duckdb/stable/exception.hpp"
 #include <stdexcept>
 #include <limits>
 
@@ -17,7 +18,7 @@ namespace duckdb_stable {
 class hugeint_t {
 public:
 	hugeint_t() = default;
-	hugeint_t(duckdb_hugeint value_p) : value(value_p) {
+	hugeint_t(duckdb_hugeint value_p) : value(value_p) { // NOLINT: allow implicit conversion
 	}
 	hugeint_t(const hugeint_t &other) : value(other.value) {
 	}
@@ -52,7 +53,7 @@ public:
 	hugeint_t negate() const {
 		hugeint_t result;
 		if (!try_negate(result)) {
-			throw std::runtime_error("Failed to negate hugeint: out of range");
+			throw Exception("Failed to negate hugeint: out of range");
 		}
 		return result;
 	}
@@ -77,7 +78,7 @@ public:
 	hugeint_t add(hugeint_t rhs) const {
 		hugeint_t result = *this;
 		if (!try_add_in_place(result, rhs)) {
-			throw std::runtime_error("Failed to add hugeint: out of range");
+			throw Exception("Failed to add hugeint: out of range");
 		}
 		return result;
 	}
@@ -104,7 +105,7 @@ public:
 	hugeint_t subtract(hugeint_t rhs) const {
 		hugeint_t result = *this;
 		if (!try_subtract_in_place(result, rhs)) {
-			throw std::runtime_error("Failed to subtract hugeint: out of range");
+			throw Exception("Failed to subtract hugeint: out of range");
 		}
 		return result;
 	}
@@ -146,5 +147,14 @@ public:
 private:
 	duckdb_hugeint value;
 };
+
+template<>
+inline FormatValue FormatValue::CreateFormatValue(hugeint_t val) {
+	if (val.upper() == 0) {
+		return FormatValue(val.lower());
+	}
+	// FIXME: format big numbers
+	return FormatValue("HUGEINT");
+}
 
 } // namespace duckdb_stable

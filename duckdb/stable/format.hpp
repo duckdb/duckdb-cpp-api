@@ -9,8 +9,6 @@
 #pragma once
 
 #include "duckdb/stable/common.hpp"
-#include "duckdb/stable/hugeint.hpp"
-#include "duckdb/stable/uhugeint.hpp"
 #include <string>
 #include <stdexcept>
 #include <vector>
@@ -18,32 +16,14 @@
 namespace duckdb_stable {
 
 struct FormatValue {
-	FormatValue(double dbl_val) : str_val(std::to_string(dbl_val)) {}
-	FormatValue(int64_t int_val) : str_val(std::to_string(int_val)) {}
-	FormatValue(uint64_t uint_val) : str_val(std::to_string(uint_val)) {}
-	FormatValue(std::string str_val_p): str_val(std::move(str_val_p)) {}
+	FormatValue(double dbl_val) : str_val(std::to_string(dbl_val)) {} // NOLINT: allow implicit conv
+	FormatValue(int64_t int_val) : str_val(std::to_string(int_val)) {} // NOLINT: allow implicit conv
+	FormatValue(uint64_t uint_val) : str_val(std::to_string(uint_val)) {} // NOLINT: allow implicit conv
+	FormatValue(std::string str_val_p): str_val(std::move(str_val_p)) {} // NOLINT: allow implicit conv
 
 	template<class T>
 	static FormatValue CreateFormatValue(T val) {
 		return FormatValue(val);
-	}
-
-	template<>
-	FormatValue CreateFormatValue(hugeint_t val) {
-		if (val.upper() == 0) {
-			return FormatValue(val.lower());
-		}
-		// FIXME: format big numbers
-		return FormatValue("HUGEINT");
-	}
-
-	template<>
-	FormatValue CreateFormatValue(uhugeint_t val) {
-		if (val.upper() == 0) {
-			return FormatValue(val.lower());
-		}
-		// FIXME: format big numbers
-		return FormatValue("UHUGEINT");
 	}
 
 	std::string str_val;
