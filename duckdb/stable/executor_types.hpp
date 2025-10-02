@@ -131,6 +131,7 @@ struct TemplateToType {
 	template<class T>
 	static LogicalType Convert() {
 		static_assert(false, "Missing type in TemplateToType");
+		throw std::runtime_error("Missing type in TemplateType");
 	}
 };
 
