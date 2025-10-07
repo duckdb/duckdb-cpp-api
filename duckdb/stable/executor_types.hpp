@@ -127,12 +127,15 @@ struct StructTypeTernary {
 	}
 };
 
+template<class T>
+struct AlwaysFalse {
+	static constexpr bool value = false;
+};
+
 struct TemplateToType {
 	template<class T>
 	static LogicalType Convert() {
-#ifdef __GNUC__
-		static_assert(false, "Missing type in TemplateToType");
-#endif
+		static_assert(AlwaysFalse<T>::value, "Missing type in TemplateToType");
 		throw std::runtime_error("Missing type in TemplateType");
 	}
 };
