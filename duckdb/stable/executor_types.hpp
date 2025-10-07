@@ -130,7 +130,9 @@ struct StructTypeTernary {
 struct TemplateToType {
 	template<class T>
 	static LogicalType Convert() {
+#ifdef __GNUC__
 		static_assert(false, "Missing type in TemplateToType");
+#endif
 		throw std::runtime_error("Missing type in TemplateType");
 	}
 };
