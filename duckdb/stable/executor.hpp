@@ -13,14 +13,15 @@
 #include <cstddef>
 
 namespace duckdb_stable {
+
 class ExpressionState;
 
 template <class T>
 struct ResultValue {
 	ResultValue() = default;
-	ResultValue(T val_p) : val(val_p), is_null(false) {  // NOLINT: allow implicit conversion
+	ResultValue(T val_p) : val(val_p), is_null(false) {  // NOLINT: allow implicit conversion.
 	}
-	ResultValue(std::nullptr_t ) : is_null(true) { // NOLINT: allow implicit conversion
+	ResultValue(std::nullptr_t ) : is_null(true) { // NOLINT: allow implicit conversion.
 	}
 
 	T val;
@@ -30,7 +31,7 @@ struct ResultValue {
 class Executor {
 public:
 	template <class A_TYPE, class RESULT_TYPE, class FUNC>
-	void ExecuteUnary(Vector &input, Vector &result, idx_t count, FUNC fun) {
+	void ExecuteUnary(Vector &input, Vector &result, const idx_t count, FUNC fun) {
 		typename A_TYPE::STRUCT_STATE a_state;
 		a_state.PrepareVector(input, count);
 
@@ -61,7 +62,7 @@ public:
 	}
 
 	template <class A_TYPE, class B_TYPE, class RESULT_TYPE, class FUNC>
-	void ExecuteBinary(Vector &a, Vector &b, Vector &result, idx_t count, FUNC fun) {
+	void ExecuteBinary(Vector &a, Vector &b, Vector &result, const idx_t count, FUNC fun) {
 		typename A_TYPE::STRUCT_STATE a_state;
 		typename B_TYPE::STRUCT_STATE b_state;
 
@@ -102,12 +103,12 @@ public:
 	}
 
 protected:
-	virtual bool SetError(const char *error_message, idx_t r, Vector &result) = 0;
+	virtual bool SetError(const char *error_message, const idx_t r, Vector &result) = 0;
 };
 
 class CastExecutor : public Executor {
 public:
-	CastExecutor(duckdb_function_info info_p) : info(info_p) {
+	CastExecutor(duckdb_function_info info_p) : info(info_p), success(true) {
 		cast_mode = duckdb_cast_function_get_cast_mode(info);
 	}
 
@@ -117,8 +118,8 @@ public:
 	}
 
 protected:
-	bool SetError(const char *error_message, idx_t r, Vector &result) override {
-		duckdb_cast_function_set_row_error(info, error_message, r, result.c_vec());
+	bool SetError(const char *error_message, const idx_t r, Vector &result) override {
+		duckdb_cast_function_set_row_error(info, error_message, r, result.c_vector());
 		if (cast_mode == DUCKDB_CAST_TRY) {
 			return true;
 		}
@@ -129,12 +130,12 @@ protected:
 private:
 	duckdb_function_info info;
 	duckdb_cast_mode cast_mode;
-	bool success = true;
+	bool success;
 };
 
 class FunctionExecutor : public Executor {
 public:
-	FunctionExecutor(duckdb_function_info info_p) : info(info_p) {
+	FunctionExecutor(duckdb_function_info info_p) : info(info_p), success(true) {
 	}
 
 public:
@@ -142,12 +143,12 @@ public:
 		return success;
 	}
 
-	duckdb_function_info c_info() {
+	duckdb_function_info c_function_info() {
 		return info;
 	}
 
 protected:
-	bool SetError(const char *error_message, idx_t r, Vector &result) override {
+	bool SetError(const char *error_message, const idx_t r, Vector &result) override {
 		duckdb_scalar_function_set_error(info, error_message);
 		success = false;
 		return false;
@@ -155,7 +156,7 @@ protected:
 
 private:
 	duckdb_function_info info;
-	bool success = true;
+	bool success;
 };
 
 } // namespace duckdb_stable

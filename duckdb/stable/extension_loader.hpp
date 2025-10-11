@@ -8,11 +8,12 @@
 
 #pragma once
 
-#include "duckdb/stable/common.hpp"
 #include "duckdb/stable/cast_function.hpp"
+#include "duckdb/stable/common.hpp"
+#include "duckdb/stable/exception.hpp"
 #include "duckdb/stable/logical_type.hpp"
 #include "duckdb/stable/scalar_function.hpp"
-#include "duckdb/stable/exception.hpp"
+
 #include <string>
 
 namespace duckdb_stable {
@@ -28,7 +29,7 @@ public:
 		try {
 			Load();
 		} catch (std::exception &ex) {
-			std::string error = std::string("Failed to load extension: ") + ex.what();
+			std::string error = std::string("failed to load extension: ") + ex.what();
 			access->set_error(info, error.c_str());
 			return false;
 		}
@@ -38,11 +39,10 @@ public:
 protected:
 	virtual void Load() = 0;
 
-	void Register(LogicalType &type) {
-		// Register the type
-		auto success = duckdb_register_logical_type(connection, type.c_type(), nullptr) == DuckDBSuccess;
+	void Register(LogicalType &logical_type) {
+		auto success = duckdb_register_logical_type(connection, logical_type.c_type(), nullptr) == DuckDBSuccess;
 		if (!success) {
-			throw Exception("Failed to register type");
+			throw Exception("failed to register type");
 		}
 	}
 
@@ -59,7 +59,7 @@ protected:
 
 		duckdb_destroy_cast_function(&cast_function);
 		if (!success) {
-			throw Exception("Failed to register cast function");
+			throw Exception("failed to register cast function");
 		}
 	}
 
@@ -67,14 +67,14 @@ protected:
 		auto scalar_function = function.CreateFunction();
 		auto success = duckdb_register_scalar_function(connection, scalar_function.c_function()) == DuckDBSuccess;
 		if (!success) {
-			throw Exception(std::string("Failed to register scalar function ") + function.Name());
+			throw Exception(std::string("failed to register scalar function ") + function.Name());
 		}
 	}
 
 	void Register(ScalarFunctionSet &function_set) {
 		auto success = duckdb_register_scalar_function_set(connection, function_set.c_set()) == DuckDBSuccess;
 		if (!success) {
-			throw Exception("Failed to register scalar function set");
+			throw Exception("failed to register scalar function set");
 		}
 	}
 

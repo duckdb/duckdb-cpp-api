@@ -9,6 +9,7 @@
 #pragma once
 
 #include "duckdb/stable/common.hpp"
+
 #include <cstring>
 
 namespace duckdb_stable {
@@ -23,23 +24,24 @@ public:
 	string_t(const char *data, uint32_t len) {
 		string.value.inlined.length = len;
 		if (IsInlined()) {
-			// zero initialize the prefix first
-			// this makes sure that strings with length smaller than 4 still have an equal prefix
+			// Zero-initialize the prefix,
+			// ensuring that strings with length smaller than 4 have an equal prefix.
 			memset(string.value.inlined.inlined, 0, INLINE_LENGTH);
 			if (GetSize() == 0) {
 				return;
 			}
-			// small string: inlined
+			// Small string: inlined.
 			memcpy(string.value.inlined.inlined, data, GetSize());
-		} else {
-			// large string: store pointer
-			memcpy(string.value.pointer.prefix, data, PREFIX_LENGTH);
-			string.value.pointer.ptr = (char *)data; // NOLINT
+            return;
 		}
+        // Large string: store pointer.
+        memcpy(string.value.pointer.prefix, data, PREFIX_LENGTH);
+        string.value.pointer.ptr = (char *)data; // NOLINT
 	}
 	string_t(const char *str) : string_t(str, static_cast<uint32_t>(strlen(str))) {
 	}
 
+public:
 	const char *GetData() const {
 		return IsInlined() ? string.value.inlined.inlined : string.value.pointer.ptr;
 	}

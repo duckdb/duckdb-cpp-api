@@ -9,9 +9,10 @@
 #pragma once
 
 #include "duckdb.h"
+#include "duckdb_extension.h"
+
 #include <algorithm>
 #include <vector>
-#include "duckdb_extension.h"
 
 DUCKDB_EXTENSION_EXTERN
 

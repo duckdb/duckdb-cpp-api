@@ -10,6 +10,7 @@
 
 #include "duckdb/stable/common.hpp"
 #include "duckdb/stable/exception.hpp"
+
 #include <stdexcept>
 
 namespace duckdb_stable {
@@ -17,7 +18,7 @@ namespace duckdb_stable {
 class uhugeint_t {
 public:
 	uhugeint_t() = default;
-	uhugeint_t(duckdb_uhugeint value_p) : value(value_p) { // NOLINT: allow implicit conversion
+	uhugeint_t(duckdb_uhugeint value_p) : value(value_p) { // NOLINT: allow implicit conversion.
 	}
 	uhugeint_t(const uhugeint_t &other) : value(other.value) {
 	}
@@ -25,11 +26,12 @@ public:
 		value.lower = lower;
 		value.upper = upper;
 	}
-	uhugeint_t(uint64_t input) { // NOLINT: allow implicit conversion from smaller unsigned integers
+	uhugeint_t(uint64_t input) { // NOLINT: allow implicit conversion from smaller unsigned integers.
 		value.lower = (uint64_t)input;
 		value.upper = 0;
 	}
 
+public:
 	uint64_t upper() const {
 		return value.upper;
 	}
@@ -65,7 +67,7 @@ public:
 		auto &lhs = lhs_v.value;
 		auto &rhs = rhs_v.value;
 		uint64_t new_upper = lhs.upper - rhs.upper - ((lhs.lower - rhs.lower) > lhs.lower);
-		bool no_overflow = !(new_upper > lhs.upper);
+		bool no_overflow = new_upper <= lhs.upper;
 		lhs.lower -= rhs.lower;
 		lhs.upper = new_upper;
 		return no_overflow;
@@ -73,7 +75,7 @@ public:
 	uhugeint_t subtract(uhugeint_t rhs) const {
 		uhugeint_t result = *this;
 		if (!try_subtract_in_place(result, rhs)) {
-			throw Exception("Out of Range Error: Overflow in subtraction");
+			throw Exception("out of range error: overflow in subtraction");
 		}
 		return result;
 	}
@@ -88,7 +90,7 @@ public:
 	static uhugeint_t from_hugeint(duckdb_hugeint val) {
 		uhugeint_t result;
 		if (!try_from_hugeint(val, result)) {
-			throw Exception("Failed to convert hugeint to uhugeint: out of range");
+			throw Exception("failed to convert hugeint to uhugeint: out of range");
 		}
 		return result;
 	}
