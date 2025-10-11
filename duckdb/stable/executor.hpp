@@ -31,7 +31,7 @@ struct ResultValue {
 class Executor {
 public:
 	template <class A_TYPE, class RESULT_TYPE, class FUNC>
-	void ExecuteUnary(Vector &input, Vector &result, const idx_t count, FUNC fun) {
+	void ExecuteUnary(Vector &input, Vector &result, idx_t count, FUNC fun) {
 		typename A_TYPE::STRUCT_STATE a_state;
 		a_state.PrepareVector(input, count);
 
@@ -62,7 +62,7 @@ public:
 	}
 
 	template <class A_TYPE, class B_TYPE, class RESULT_TYPE, class FUNC>
-	void ExecuteBinary(Vector &a, Vector &b, Vector &result, const idx_t count, FUNC fun) {
+	void ExecuteBinary(Vector &a, Vector &b, Vector &result, idx_t count, FUNC fun) {
 		typename A_TYPE::STRUCT_STATE a_state;
 		typename B_TYPE::STRUCT_STATE b_state;
 
@@ -103,7 +103,7 @@ public:
 	}
 
 protected:
-	virtual bool SetError(const char *error_message, const idx_t r, Vector &result) = 0;
+	virtual bool SetError(const char *error_message, idx_t r, Vector &result) = 0;
 };
 
 class CastExecutor : public Executor {
@@ -118,7 +118,7 @@ public:
 	}
 
 protected:
-	bool SetError(const char *error_message, const idx_t r, Vector &result) override {
+	bool SetError(const char *error_message, idx_t r, Vector &result) override {
 		duckdb_cast_function_set_row_error(info, error_message, r, result.c_vector());
 		if (cast_mode == DUCKDB_CAST_TRY) {
 			return true;
@@ -148,7 +148,7 @@ public:
 	}
 
 protected:
-	bool SetError(const char *error_message, const idx_t r, Vector &result) override {
+	bool SetError(const char *error_message, idx_t r, Vector &result) override {
 		duckdb_scalar_function_set_error(info, error_message);
 		success = false;
 		return false;

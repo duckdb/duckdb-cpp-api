@@ -41,7 +41,7 @@ public:
 
 class OutOfRangeException : public Exception {
 public:
-	explicit OutOfRangeException(const std::string &msg) : Exception("out of range error: " + msg) {}
+	explicit OutOfRangeException(const std::string &msg) : Exception("Out of Range Error: " + msg) {}
 	template <typename... ARGS>
 	explicit OutOfRangeException(const std::string &msg, ARGS... params)
 		: OutOfRangeException(ConstructMessage(msg, params...)) {

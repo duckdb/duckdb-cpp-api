@@ -139,8 +139,8 @@ struct AlwaysFalse {
 struct TemplateToType {
 	template<class T>
 	static LogicalType Convert() {
-		static_assert(AlwaysFalse<T>::value, "missing type in TemplateToType");
-		throw std::runtime_error("missing type in TemplateType");
+		static_assert(AlwaysFalse<T>::value, "Missing Type in TemplateToType");
+		throw std::runtime_error("Missing Type in TemplateType");
 	}
 };
 

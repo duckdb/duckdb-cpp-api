@@ -55,7 +55,7 @@ public:
 	hugeint_t negate() const {
 		hugeint_t result;
 		if (!try_negate(result)) {
-			throw Exception("failed to negate hugeint: out of range");
+			throw Exception("Failed to negate hugeint: Out of range");
 		}
 		return result;
 	}
@@ -82,7 +82,7 @@ public:
 	hugeint_t add(hugeint_t rhs) const {
 		hugeint_t result = *this;
 		if (!try_add_in_place(result, rhs)) {
-			throw Exception("failed to add hugeint: out of range");
+			throw Exception("Failed to add hugeint: Out of range");
 		}
 		return result;
 	}
@@ -110,7 +110,7 @@ public:
 	hugeint_t subtract(hugeint_t rhs) const {
 		hugeint_t result = *this;
 		if (!try_subtract_in_place(result, rhs)) {
-			throw Exception("Failed to subtract hugeint: out of range");
+			throw Exception("Failed to subtract hugeint: Out of range");
 		}
 		return result;
 	}

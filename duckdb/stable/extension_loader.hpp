@@ -29,7 +29,7 @@ public:
 		try {
 			Load();
 		} catch (std::exception &ex) {
-			std::string error = std::string("failed to load extension: ") + ex.what();
+			std::string error = std::string("Failed to load extension: ") + ex.what();
 			access->set_error(info, error.c_str());
 			return false;
 		}
@@ -42,7 +42,7 @@ protected:
 	void Register(LogicalType &logical_type) {
 		auto success = duckdb_register_logical_type(connection, logical_type.c_type(), nullptr) == DuckDBSuccess;
 		if (!success) {
-			throw Exception("failed to register type");
+			throw Exception("Failed to register type");
 		}
 	}
 
@@ -59,22 +59,22 @@ protected:
 
 		duckdb_destroy_cast_function(&cast_function);
 		if (!success) {
-			throw Exception("failed to register cast function");
+			throw Exception("Failed to register cast function");
 		}
 	}
 
 	void Register(ScalarFunction &function) {
 		auto scalar_function = function.CreateFunction();
-		auto success = duckdb_register_scalar_function(connection, scalar_function.c_function()) == DuckDBSuccess;
+		auto success = duckdb_register_scalar_function(connection, scalar_function.c_scalar_function()) == DuckDBSuccess;
 		if (!success) {
-			throw Exception(std::string("failed to register scalar function ") + function.Name());
+			throw Exception(std::string("Failed to register scalar function ") + function.Name());
 		}
 	}
 
 	void Register(ScalarFunctionSet &function_set) {
 		auto success = duckdb_register_scalar_function_set(connection, function_set.c_set()) == DuckDBSuccess;
 		if (!success) {
-			throw Exception("failed to register scalar function set");
+			throw Exception("Failed to register scalar function set");
 		}
 	}
 

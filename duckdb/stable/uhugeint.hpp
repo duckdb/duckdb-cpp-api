@@ -38,7 +38,7 @@ public:
 	uint64_t lower() const {
 		return value.lower;
 	}
-	duckdb_uhugeint c_val() const {
+	duckdb_uhugeint c_uhugeint() const {
 		return value;
 	}
 
@@ -75,7 +75,7 @@ public:
 	uhugeint_t subtract(uhugeint_t rhs) const {
 		uhugeint_t result = *this;
 		if (!try_subtract_in_place(result, rhs)) {
-			throw Exception("out of range error: overflow in subtraction");
+			throw Exception("Out of Range Error: Overflow in subtraction");
 		}
 		return result;
 	}
@@ -90,7 +90,7 @@ public:
 	static uhugeint_t from_hugeint(duckdb_hugeint val) {
 		uhugeint_t result;
 		if (!try_from_hugeint(val, result)) {
-			throw Exception("failed to convert hugeint to uhugeint: out of range");
+			throw Exception("Failed to convert hugeint to uhugeint: Out of range");
 		}
 		return result;
 	}
