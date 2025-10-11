@@ -40,7 +40,7 @@ protected:
 	virtual void Load() = 0;
 
 	void Register(LogicalType &logical_type) {
-		auto success = duckdb_register_logical_type(connection, logical_type.c_type(), nullptr) == DuckDBSuccess;
+		auto success = duckdb_register_logical_type(connection, logical_type.c_logical_type(), nullptr) == DuckDBSuccess;
 		if (!success) {
 			throw Exception("Failed to register type");
 		}
@@ -51,8 +51,8 @@ protected:
 		auto source_type = cast.SourceType();
 		auto target_type = cast.TargetType();
 		duckdb_cast_function_set_implicit_cast_cost(cast_function, cast.ImplicitCastCost());
-		duckdb_cast_function_set_source_type(cast_function, source_type.c_type());
-		duckdb_cast_function_set_target_type(cast_function, target_type.c_type());
+		duckdb_cast_function_set_source_type(cast_function, source_type.c_logical_type());
+		duckdb_cast_function_set_target_type(cast_function, target_type.c_logical_type());
 		duckdb_cast_function_set_function(cast_function, cast.GetFunction());
 
 		auto success = duckdb_register_cast_function(connection, cast_function) == DuckDBSuccess;
@@ -72,7 +72,7 @@ protected:
 	}
 
 	void Register(ScalarFunctionSet &function_set) {
-		auto success = duckdb_register_scalar_function_set(connection, function_set.c_set()) == DuckDBSuccess;
+		auto success = duckdb_register_scalar_function_set(connection, function_set.c_scalar_function_set()) == DuckDBSuccess;
 		if (!success) {
 			throw Exception("Failed to register scalar function set");
 		}

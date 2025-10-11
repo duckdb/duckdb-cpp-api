@@ -30,7 +30,7 @@ public:
 	LogicalType &operator=(const LogicalType &) = delete;
 
 	//! Enable move constructors.
-	LogicalType(LogicalType &&other) noexcept : type(nullptr) {
+	LogicalType(LogicalType &&other) noexcept : logical_type(nullptr) {
 		std::swap(logical_type, other.logical_type);
 	}
 	LogicalType &operator=(LogicalType &&other) noexcept {

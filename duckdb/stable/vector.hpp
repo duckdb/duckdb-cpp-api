@@ -42,10 +42,10 @@ public:
 public:
 	Vector GetChild(const idx_t index) {
 		auto logical_type = GetLogicalType();
-		if (logical_type.id() == DUCKDB_TYPE_STRUCT) {
+		if (logical_type.c_type() == DUCKDB_TYPE_STRUCT) {
 			return Vector(duckdb_struct_vector_get_child(c_vector(), index));
 		}
-        if (logical_type.id() == DUCKDB_TYPE_LIST) {
+        if (logical_type.c_type() == DUCKDB_TYPE_LIST) {
 			if (index != 0) {
 				throw Exception("LIST has one child at index 0");
 			}

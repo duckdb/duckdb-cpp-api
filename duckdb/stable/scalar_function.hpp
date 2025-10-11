@@ -94,11 +94,11 @@ public:
     ScalarFunctionSet &operator=(const ScalarFunctionSet &) = delete;
 
     //! Enable move constructors.
-    ScalarFunctionSet(ScalarFunctionSet &&other) noexcept : function(nullptr) {
+    ScalarFunctionSet(ScalarFunctionSet &&other) noexcept : set(nullptr) {
         std::swap(name, other.name);
         std::swap(set, other.set);
     }
-    ScalarFunctionSet &operator=(CScalarFunction &&other) noexcept {
+    ScalarFunctionSet &operator=(ScalarFunctionSet &&other) noexcept {
         std::swap(name, other.name);
         std::swap(set, other.set);
         return *this;
