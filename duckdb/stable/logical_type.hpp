@@ -14,40 +14,33 @@ namespace duckdb_stable {
 
 class LogicalType {
 public:
-	LogicalType(duckdb_logical_type type_p) : type(type_p) {
+	LogicalType(duckdb_logical_type logical_type_p) : logical_type(logical_type_p) {
 	}
-	LogicalType(duckdb_type ctype) {
-		type = duckdb_create_logical_type(ctype);
+	LogicalType(duckdb_type type_p) {
+        logical_type = duckdb_create_logical_type(type_p);
 	}
 	~LogicalType() {
-		if (type) {
-			duckdb_destroy_logical_type(&type);
-			type = nullptr;
+		if (logical_type) {
+			duckdb_destroy_logical_type(&logical_type);
 		}
 	}
-	// disable copy constructors
+
+	//! Disable copy constructors.
 	LogicalType(const LogicalType &other) = delete;
 	LogicalType &operator=(const LogicalType &) = delete;
-	//! enable move constructors
-	LogicalType(LogicalType &&other) noexcept : type(nullptr) {
-		std::swap(type, other.type);
+
+	//! Enable move constructors.
+	LogicalType(LogicalType &&other) noexcept : logical_type(nullptr) {
+		std::swap(logical_type, other.logical_type);
 	}
 	LogicalType &operator=(LogicalType &&other) noexcept {
-		std::swap(type, other.type);
+		std::swap(logical_type, other.logical_type);
 		return *this;
 	}
 
 public:
-	duckdb_logical_type c_type() {
-		return type;
-	}
-
-	duckdb_type id() {
-		return duckdb_get_type_id(type);
-	}
-
 	void SetAlias(const char *name) {
-		duckdb_logical_type_set_alias(type, name);
+		duckdb_logical_type_set_alias(logical_type, name);
 	}
 
 public:
@@ -67,12 +60,21 @@ public:
 		return LogicalType(DUCKDB_TYPE_HUGEINT);
 	}
 	static LogicalType STRUCT(LogicalType *child_types, const char **child_names, idx_t n) {
-		return LogicalType(
-		    duckdb_create_struct_type(reinterpret_cast<duckdb_logical_type *>(child_types), child_names, n));
+        auto c_child_types = reinterpret_cast<duckdb_logical_type *>(child_types);
+		return LogicalType(duckdb_create_struct_type(c_child_types, child_names, n));
 	}
 
+public:
+    duckdb_logical_type c_logical_type() {
+        return logical_type;
+    }
+
+    duckdb_type c_type() {
+        return duckdb_get_type_id(logical_type);
+    }
+
 private:
-	duckdb_logical_type type;
+	duckdb_logical_type logical_type;
 };
 
 } // namespace duckdb_stable

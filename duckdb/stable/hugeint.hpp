@@ -10,6 +10,7 @@
 
 #include "duckdb/stable/common.hpp"
 #include "duckdb/stable/exception.hpp"
+
 #include <stdexcept>
 #include <limits>
 
@@ -18,7 +19,7 @@ namespace duckdb_stable {
 class hugeint_t {
 public:
 	hugeint_t() = default;
-	hugeint_t(duckdb_hugeint value_p) : value(value_p) { // NOLINT: allow implicit conversion
+	hugeint_t(duckdb_hugeint value_p) : value(value_p) { // NOLINT: allow implicit conversion.
 	}
 	hugeint_t(const hugeint_t &other) : value(other.value) {
 	}
@@ -31,13 +32,14 @@ public:
 		value.upper = (input < 0) * -1;
 	}
 
+public:
 	int64_t upper() const {
 		return value.upper;
 	}
 	uint64_t lower() const {
 		return value.lower;
 	}
-	duckdb_hugeint c_val() const {
+	duckdb_hugeint c_hugeint() const {
 		return value;
 	}
 
@@ -53,20 +55,21 @@ public:
 	hugeint_t negate() const {
 		hugeint_t result;
 		if (!try_negate(result)) {
-			throw Exception("Failed to negate hugeint: out of range");
+			throw Exception("Failed to negate hugeint: Out of range");
 		}
 		return result;
 	}
+
 	static bool try_add_in_place(hugeint_t &lhs, hugeint_t rhs) {
 		int overflow = lhs.value.lower + rhs.value.lower < lhs.value.lower;
 		if (rhs.value.upper >= 0) {
-			// RHS is positive: check for overflow
+			// RHS is positive: check for overflow.
 			if (lhs.value.upper > (std::numeric_limits<int64_t>::max() - rhs.value.upper - overflow)) {
 				return false;
 			}
 			lhs.value.upper = lhs.value.upper + overflow + rhs.value.upper;
 		} else {
-			// RHS is negative: check for underflow
+			// RHS is negative: check for underflow.
 			if (lhs.value.upper < std::numeric_limits<int64_t>::min() - rhs.value.upper - overflow) {
 				return false;
 			}
@@ -75,24 +78,25 @@ public:
 		lhs.value.lower += rhs.value.lower;
 		return true;
 	}
+
 	hugeint_t add(hugeint_t rhs) const {
 		hugeint_t result = *this;
 		if (!try_add_in_place(result, rhs)) {
-			throw Exception("Failed to add hugeint: out of range");
+			throw Exception("Failed to add hugeint: Out of range");
 		}
 		return result;
 	}
+
 	static bool try_subtract_in_place(hugeint_t &lhs, hugeint_t rhs) {
-		// underflow
 		int underflow = lhs.value.lower - rhs.value.lower > lhs.value.lower;
 		if (rhs.value.upper >= 0) {
-			// RHS is positive: check for underflow
+			// RHS is positive: check for underflow.
 			if (lhs.value.upper < (std::numeric_limits<int64_t>::min() + rhs.value.upper + underflow)) {
 				return false;
 			}
 			lhs.value.upper = (lhs.value.upper - rhs.value.upper) - underflow;
 		} else {
-			// RHS is negative: check for overflow
+			// RHS is negative: check for overflow.
 			if (lhs.value.upper > std::numeric_limits<int64_t>::min() &&
 			    lhs.value.upper - 1 >= (std::numeric_limits<int64_t>::max() + rhs.value.upper + underflow)) {
 				return false;
@@ -102,10 +106,11 @@ public:
 		lhs.value.lower -= rhs.value.lower;
 		return true;
 	}
+
 	hugeint_t subtract(hugeint_t rhs) const {
 		hugeint_t result = *this;
 		if (!try_subtract_in_place(result, rhs)) {
-			throw Exception("Failed to subtract hugeint: out of range");
+			throw Exception("Failed to subtract hugeint: Out of range");
 		}
 		return result;
 	}

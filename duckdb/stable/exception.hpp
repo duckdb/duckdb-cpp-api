@@ -12,14 +12,14 @@
 
 namespace duckdb_stable {
 
-
 class Exception : public std::runtime_error {
 public:
 	Exception(const std::string &message) : std::runtime_error(message) {
 	}
+
 	template <typename... ARGS>
 	static std::string ConstructMessage(const std::string &msg, ARGS... params) {
-		const std::size_t num_args = sizeof...(ARGS);
+		const idx_t num_args = sizeof...(ARGS);
 		if (num_args == 0) {
 			return msg;
 		}
@@ -48,5 +48,5 @@ public:
 	}
 };
 
-}
+} // namespace duckdb_stable
 

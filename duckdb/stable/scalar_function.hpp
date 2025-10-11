@@ -9,13 +9,15 @@
 #pragma once
 
 #include "duckdb/stable/common.hpp"
-#include "duckdb/stable/logical_type.hpp"
-#include "duckdb/stable/executor_types.hpp"
 #include "duckdb/stable/executor.hpp"
+#include "duckdb/stable/executor_types.hpp"
+#include "duckdb/stable/logical_type.hpp"
+
 #include <string>
 #include <vector>
 
 namespace duckdb_stable {
+
 class LogicalType;
 class DataChunk;
 class ExpressionState;
@@ -23,17 +25,19 @@ class Vector;
 
 class CScalarFunction {
 public:
-	CScalarFunction(duckdb_scalar_function function) : function(function) {
+	CScalarFunction(duckdb_scalar_function function_p) : function(function_p) {
 	}
 	~CScalarFunction() {
 		if (function) {
 			duckdb_destroy_scalar_function(&function);
 		}
 	}
-	// disable copy constructors
+
+	//! Disable copy constructors.
 	CScalarFunction(const CScalarFunction &other) = delete;
 	CScalarFunction &operator=(const CScalarFunction &) = delete;
-	//! enable move constructors
+
+	//! Enable move constructors.
 	CScalarFunction(CScalarFunction &&other) noexcept : function(nullptr) {
 		std::swap(function, other.function);
 	}
@@ -42,7 +46,8 @@ public:
 		return *this;
 	}
 
-	duckdb_scalar_function c_function() {
+public:
+	duckdb_scalar_function c_scalar_function() {
 		return function;
 	}
 
@@ -55,7 +60,7 @@ public:
 	virtual ~ScalarFunction() = default;
 
 	virtual const char *Name() const {
-		throw Exception("ScalarFunction does not have a name defined - it can only be added to a set");
+		throw Exception("scalarFunction does not have a name - unnamed functions can only be added to a set");
 	}
 	virtual LogicalType ReturnType() const = 0;
 	virtual std::vector<LogicalType> Arguments() const = 0;
@@ -65,9 +70,9 @@ public:
 		auto scalar_function = duckdb_create_scalar_function();
 		duckdb_scalar_function_set_name(scalar_function, name_override ? name_override : Name());
 		for (auto &arg : Arguments()) {
-			duckdb_scalar_function_add_parameter(scalar_function, arg.c_type());
+			duckdb_scalar_function_add_parameter(scalar_function, arg.c_logical_type());
 		}
-		duckdb_scalar_function_set_return_type(scalar_function, ReturnType().c_type());
+		duckdb_scalar_function_set_return_type(scalar_function, ReturnType().c_logical_type());
 		duckdb_scalar_function_set_function(scalar_function, GetFunction());
 		return CScalarFunction(scalar_function);
 	}
@@ -84,12 +89,28 @@ public:
 		}
 	}
 
+    //! Disable copy constructors.
+    ScalarFunctionSet(const ScalarFunctionSet &other) = delete;
+    ScalarFunctionSet &operator=(const ScalarFunctionSet &) = delete;
+
+    //! Enable move constructors.
+    ScalarFunctionSet(ScalarFunctionSet &&other) noexcept : set(nullptr) {
+        std::swap(name, other.name);
+        std::swap(set, other.set);
+    }
+    ScalarFunctionSet &operator=(ScalarFunctionSet &&other) noexcept {
+        std::swap(name, other.name);
+        std::swap(set, other.set);
+        return *this;
+    }
+
+public:
 	void AddFunction(ScalarFunction &function) {
 		auto scalar_function = function.CreateFunction(name.c_str());
-		duckdb_add_scalar_function_to_set(set, scalar_function.c_function());
+		duckdb_add_scalar_function_to_set(set, scalar_function.c_scalar_function());
 	}
 
-	duckdb_scalar_function_set c_set() {
+	duckdb_scalar_function_set c_scalar_function_set() {
 		return set;
 	}
 

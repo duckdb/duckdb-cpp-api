@@ -9,24 +9,26 @@
 #pragma once
 
 #include "duckdb/stable/common.hpp"
-#include "duckdb/stable/logical_type.hpp"
 #include "duckdb/stable/exception.hpp"
+#include "duckdb/stable/logical_type.hpp"
 
 namespace duckdb_stable {
 
 class Vector {
 public:
-	Vector(duckdb_vector vec_p, bool owning = false) : vec(vec_p), owning(owning) {
+	Vector(duckdb_vector vec_p, const bool owning_p = false) : vec(vec_p), owning(owning_p) {
 	}
 	~Vector() {
 		if (vec && owning) {
 			duckdb_destroy_vector(&vec);
 		}
 	}
-	// disable copy constructors
+
+	//! Disable copy constructors.
 	Vector(const Vector &other) = delete;
 	Vector &operator=(const Vector &) = delete;
-	//! enable move constructors
+
+	//! Enable move constructors.
 	Vector(Vector &&other) noexcept : vec(nullptr), owning(false) {
 		std::swap(vec, other.vec);
 		std::swap(owning, other.owning);
@@ -37,25 +39,27 @@ public:
 		return *this;
 	}
 
-	Vector GetChild(idx_t index) {
-		auto type = GetType();
-		if (type.id() == DUCKDB_TYPE_STRUCT) {
-			return Vector(duckdb_struct_vector_get_child(c_vec(), index));
-		} else if (type.id() == DUCKDB_TYPE_LIST) {
-			if (index != 0) {
-				throw Exception("List only has a single child");
-			}
-			return Vector(duckdb_list_vector_get_child(c_vec()));
-		} else {
-			throw Exception("Not a nested type");
+public:
+	Vector GetChild(const idx_t index) {
+		auto logical_type = GetLogicalType();
+		if (logical_type.c_type() == DUCKDB_TYPE_STRUCT) {
+			return Vector(duckdb_struct_vector_get_child(c_vector(), index));
 		}
+        if (logical_type.c_type() == DUCKDB_TYPE_LIST) {
+			if (index != 0) {
+				throw Exception("LIST has one child at index 0");
+			}
+			return Vector(duckdb_list_vector_get_child(c_vector()));
+		}
+        throw Exception("not a nested type");
 	}
 
-	LogicalType GetType() {
-		return LogicalType(duckdb_vector_get_column_type(c_vec()));
+	LogicalType GetLogicalType() {
+		return LogicalType(duckdb_vector_get_column_type(c_vector()));
 	}
 
-	duckdb_vector c_vec() {
+public:
+	duckdb_vector c_vector() {
 		return vec;
 	}
 

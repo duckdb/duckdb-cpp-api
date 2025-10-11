@@ -9,6 +9,7 @@
 #pragma once
 
 #include "duckdb/stable/common.hpp"
+
 #include <limits>
 #include <string>
 #include <vector>
@@ -17,7 +18,7 @@ namespace duckdb_stable {
 
 class StringUtil {
 public:
-	static uint64_t ToUnsigned(const char *str, idx_t len, idx_t &pos) {
+	static uint64_t ToUnsigned(const char *str, const idx_t len, idx_t &pos) {
 		uint64_t result = 0;
 		while (pos < len && isdigit(str[pos])) {
 			result = result * 10 + str[pos] - '0';
@@ -25,7 +26,8 @@ public:
 		}
 		return result;
 	}
-	static int64_t ToSigned(const char *str, idx_t len, idx_t &pos) {
+
+	static int64_t ToSigned(const char *str, const idx_t len, idx_t &pos) {
 		if (len == 0) {
 			return 0;
 		}
@@ -40,7 +42,8 @@ public:
 		}
 		return negative ? -static_cast<int64_t>(result) : static_cast<int64_t>(result);
 	}
-	static uint64_t FromHex(const char *str, idx_t len, idx_t &pos) {
+
+	static uint64_t FromHex(const char *str, const idx_t len, idx_t &pos) {
 		if (len == 0) {
 			return 0;
 		}
