@@ -1,4 +1,3 @@
-
 //===----------------------------------------------------------------------===//
 //                         DuckDB
 //
@@ -15,17 +14,19 @@ namespace duckdb_stable {
 
 class DataChunk {
 public:
-	DataChunk(duckdb_data_chunk chunk_p, bool owning = false) : chunk(chunk_p), owning(owning) {
+	DataChunk(duckdb_data_chunk chunk_p, const bool owning_p = false) : chunk(chunk_p), owning(owning_p) {
 	}
 	~DataChunk() {
 		if (chunk && owning) {
 			duckdb_destroy_data_chunk(&chunk);
 		}
 	}
-	// disable copy constructors
+
+	//! Disable copy constructors.
 	DataChunk(const DataChunk &other) = delete;
 	DataChunk &operator=(const DataChunk &) = delete;
-	//! enable move constructors
+
+	//! Enable move constructors.
 	DataChunk(DataChunk &&other) noexcept : chunk(nullptr), owning(false) {
 		std::swap(chunk, other.chunk);
 		std::swap(owning, other.owning);
@@ -36,19 +37,21 @@ public:
 		return *this;
 	}
 
-	Vector GetVector(idx_t index) {
+public:
+	Vector GetVector(const idx_t index) {
 		return Vector(duckdb_data_chunk_get_vector(chunk, index));
 	}
 
-	idx_t Size() {
+	idx_t Size() const {
 		return duckdb_data_chunk_get_size(chunk);
 	}
 
-	idx_t ColumnCount() {
+	idx_t ColumnCount() const {
 		return duckdb_data_chunk_get_column_count(chunk);
 	}
 
-	duckdb_data_chunk c_chunk() {
+public:
+	duckdb_data_chunk c_data_chunk() {
 		return chunk;
 	}
 

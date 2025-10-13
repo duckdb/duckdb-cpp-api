@@ -22,28 +22,28 @@ struct PrimitiveTypeState {
 	uint64_t *validity = nullptr;
 
 	void PrepareVector(Vector &input, idx_t count) {
-		data = reinterpret_cast<INPUT_TYPE *>(duckdb_vector_get_data(input.c_vec()));
-		validity = duckdb_vector_get_validity(input.c_vec());
+		data = reinterpret_cast<INPUT_TYPE *>(duckdb_vector_get_data(input.c_vector()));
+		validity = duckdb_vector_get_validity(input.c_vector());
 	}
 };
 
 struct AssignResult {
 	template<class T>
 	static void Assign(Vector &result, idx_t r, T result_val) {
-		auto result_data = reinterpret_cast<T *>(duckdb_vector_get_data(result.c_vec()));
+		auto result_data = reinterpret_cast<T *>(duckdb_vector_get_data(result.c_vector()));
 		result_data[r] = result_val;
 	}
 };
 
 template<>
 inline void AssignResult::Assign(Vector &result, idx_t r, string_t result_val) {
-	duckdb_vector_assign_string_element_len(result.c_vec(), r, result_val.GetData(), result_val.GetSize());
+	duckdb_vector_assign_string_element_len(result.c_vector(), r, result_val.GetData(), result_val.GetSize());
 }
 
 template <class INPUT_TYPE>
 struct PrimitiveType {
 	PrimitiveType() = default;
-	PrimitiveType(INPUT_TYPE val) : val(val) { // NOLINT: allow implicit cast
+	PrimitiveType(INPUT_TYPE val) : val(val) { // NOLINT: allow implicit conversion.
 	}
 
 	INPUT_TYPE val;
@@ -54,13 +54,15 @@ struct PrimitiveType {
 	static void ConstructType(STRUCT_STATE &state, idx_t r, ARG_TYPE &output) {
 		output = state.data[r];
 	}
+
 	static void SetNull(Vector &result, STRUCT_STATE &result_state, idx_t i) {
 		if (!result_state.validity) {
-			duckdb_vector_ensure_validity_writable(result.c_vec());
-			result_state.validity = duckdb_vector_get_validity(result.c_vec());
+			duckdb_vector_ensure_validity_writable(result.c_vector());
+			result_state.validity = duckdb_vector_get_validity(result.c_vector());
 		}
 		duckdb_validity_set_row_invalid(result_state.validity, i);
 	}
+
 	static void AssignResult(Vector &result, idx_t r, ARG_TYPE result_val) {
 		AssignResult::Assign<INPUT_TYPE>(result, r, result_val);
 	}
@@ -74,16 +76,16 @@ struct StructTypeStateTernary {
 	uint64_t *validity = nullptr;
 
 	void PrepareVector(Vector &input, idx_t count) {
-		Vector a_vector(duckdb_struct_vector_get_child(input.c_vec(), 0));
+		Vector a_vector(duckdb_struct_vector_get_child(input.c_vector(), 0));
 		a_state.PrepareVector(a_vector, count);
 
-		Vector b_vector(duckdb_struct_vector_get_child(input.c_vec(), 1));
+		Vector b_vector(duckdb_struct_vector_get_child(input.c_vector(), 1));
 		b_state.PrepareVector(b_vector, count);
 
-		Vector c_vector(duckdb_struct_vector_get_child(input.c_vec(), 2));
+		Vector c_vector(duckdb_struct_vector_get_child(input.c_vector(), 2));
 		c_state.PrepareVector(c_vector, count);
 
-		validity = duckdb_vector_get_validity(input.c_vec());
+		validity = duckdb_vector_get_validity(input.c_vector());
 	}
 };
 
@@ -101,10 +103,11 @@ struct StructTypeTernary {
 		B_TYPE::ConstructType(state.b_state, r, output.b_val);
 		C_TYPE::ConstructType(state.c_state, r, output.c_val);
 	}
+
 	static void SetNull(Vector &result, STRUCT_STATE &result_state, idx_t r) {
 		if (!result_state.validity) {
-			duckdb_vector_ensure_validity_writable(result.c_vec());
-			result_state.validity = duckdb_vector_get_validity(result.c_vec());
+			duckdb_vector_ensure_validity_writable(result.c_vector());
+			result_state.validity = duckdb_vector_get_validity(result.c_vector());
 		}
 		duckdb_validity_set_row_invalid(result_state.validity, r);
 
@@ -115,6 +118,7 @@ struct StructTypeTernary {
 		B_TYPE::SetNull(b_child, result_state.b_state, r);
 		C_TYPE::SetNull(c_child, result_state.c_state, r);
 	}
+
 	static void AssignResult(Vector &result, idx_t r, ARG_TYPE result_val) {
 		auto a_child = result.GetChild(0);
 		A_TYPE::AssignResult(a_child, r, result_val.a_val);
@@ -135,8 +139,8 @@ struct AlwaysFalse {
 struct TemplateToType {
 	template<class T>
 	static LogicalType Convert() {
-		static_assert(AlwaysFalse<T>::value, "Missing type in TemplateToType");
-		throw std::runtime_error("Missing type in TemplateType");
+		static_assert(AlwaysFalse<T>::value, "Missing Type in TemplateToType");
+		throw std::runtime_error("Missing Type in TemplateType");
 	}
 };
 
@@ -164,6 +168,5 @@ template <>
 inline LogicalType TemplateToType::Convert<PrimitiveType<hugeint_t>>() {
 	return LogicalType::HUGEINT();
 }
-
 
 } // namespace duckdb_stable
